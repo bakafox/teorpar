@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/fisk/Рабочий стол/teorpar/Задание 2/build",
-  "command": "/usr/bin/gcc -g -o CMakeFiles/task2.dir/main.c.o -c \"/home/fisk/Рабочий стол/teorpar/Задание 2/main.c\"",
-  "file": "/home/fisk/Рабочий стол/teorpar/Задание 2/main.c"
-}
-]
