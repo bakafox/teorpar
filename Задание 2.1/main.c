@@ -117,8 +117,8 @@ int main() {
     double serial_results[2];
     serial_results[0] = run_serial(20000, 20000);
     printf("20K elapsed time: %.6f ms\n", serial_results[0]);
-    //serial_results[1] = run_serial(40000, 40000);
-    //printf("40K elapsed time: %.6f ms\n", serial_results[1]);
+    serial_results[1] = run_serial(40000, 40000);
+    printf("40K elapsed time: %.6f ms\n", serial_results[1]);
 
     printf("\n=== PARALLEL ===\n");
     for (int i = 0; i < 8; i++) {
@@ -128,9 +128,9 @@ int main() {
         parallel_results[0] = run_parallel(20000, 20000);
         printf("20K elapsed time: %.6f ms\n", parallel_results[0]);
         printf("20K accelerarion ratio: %.6f\n", serial_results[0] / parallel_results[0]);
-        //parallel_results[1] = run_parallel(40000, 40000);
-        //printf("40K elapsed time: %.6f ms\n", parallel_results[1]);
-        //printf("40K accelerarion ratio: %.6f\n", serial_results[1] / parallel_results[1]);
+        parallel_results[1] = run_parallel(40000, 40000);
+        printf("40K elapsed time: %.6f ms\n", parallel_results[1]);
+        printf("40K accelerarion ratio: %.6f\n", serial_results[1] / parallel_results[1]);
         printf("------\n");
     }
 
