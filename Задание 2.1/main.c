@@ -85,7 +85,7 @@ double run_parallel(int cols, int rows) {
         int lb = threadid * items_per_thread;
         int ub = (threadid == nthreads - 1) ? (cols - 1) : (lb + items_per_thread - 1);
 
-        // parallel integration FOR cycle
+        // parallel calculations FOR cycle
         for (int i = lb; i <= ub; i++) {
             for (int j = 0; j < rows; j++) {
                 a[i * rows + j] = i + j;

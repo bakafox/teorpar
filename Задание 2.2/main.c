@@ -38,7 +38,7 @@ double integrate_omp(double (*func)(double), double a, double b, int nsteps) {
 
         double localsum = 0.0; // independent sum for each thread
 
-        // parallel integration FOR cycle
+        // parallel calculations FOR cycle
         for (int i = lb; i <= ub; i++) {
             localsum += func(a + h * (i + 0.5));
         }
@@ -61,7 +61,7 @@ double run_serial(double a, double b, int nsteps) {
     double res = integrate(func, a, b, nsteps); // serial function
     t = cpuSecond() - t;
 
-    printf("Result: %.12f // Error: %.12f\n", res, fabs(res - sqrt(3.1415926)));
+    printf("Result: %.12f // Error: %.12f\n", res, fabs(res - sqrt(PI)));
     return t * 1000; // return value in ms
 }
 
@@ -70,7 +70,7 @@ double run_parallel(double a, double b, int nsteps) {
     double res = integrate_omp(func, a, b, nsteps); // parallel function
     t = cpuSecond() - t;
 
-    printf("Result: %.12f // Error: %.12f\n", res, fabs(res - sqrt(3.1415926)));
+    printf("Result: %.12f // Error: %.12f\n", res, fabs(res - sqrt(PI)));
     return t * 1000; // return value in ms
 }
 

@@ -1,3 +1,8 @@
-[submodule "Задание 1"]
-	path = Задание 1
-	url = git@github.com:bakafox/teorpar-task1.git
+[submodule "Задание 1 (cmake)"]
+	path = Задание 1 (cmake)
+	url = https://github.com/bakafox/teorpar-task1.git
+	branch = cmake
+[submodule "Задание 1 (make)"]
+	path = Задание 1 (make)
+	url = https://github.com/bakafox/teorpar-task1.git
+	branch = make
