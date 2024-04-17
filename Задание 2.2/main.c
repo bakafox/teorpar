@@ -36,42 +36,44 @@ double integrate_omp(double (*func)(double), double a, double b, int nsteps) {
         int lb = threadid * items_per_thread;
         int ub = (threadid == nthreads - 1) ? (nsteps - 1) : (lb + items_per_thread - 1);
 
-        double localsum = 0.0; // independent sum for each thread
+        double localsum = 0.0; // храним вычисленную часть суммы локально для каждого потока
 
-        // parallel calculations FOR cycle
+        // параллельно-вычисляемый цикл FOR,
+        // каждый поток вычисляет только 1/n-тую
+        // часть всех значений (от lb до ub)
         for (int i = lb; i <= ub; i++) {
             localsum += func(a + h * (i + 0.5));
         }
 
-        #pragma omp atomic // prevent threads writing simultaneously
+        #pragma omp atomic // предотвращаем гонку потоков, делая операцию атомарной
             sum += localsum;
     }
-
     return sum * h;
 }
 
 
 
 double func(double x) {
+    // просто некоторая функция, которую мы будем интегрировать
     return exp(-x * x);
 }
 
 double run_serial(double a, double b, int nsteps) {
     double t = cpuSecond();
-    double res = integrate(func, a, b, nsteps); // serial function
+    double res = integrate(func, a, b, nsteps);
     t = cpuSecond() - t;
 
-    printf("Result: %.12f // Error: %.12f\n", res, fabs(res - sqrt(PI)));
-    return t * 1000; // return value in ms
+    printf("\nResult: %.12f // Error: %.12f\n", res, fabs(res - sqrt(PI)));
+    return t * 1000; // возвращаем значение в мс
 }
 
 double run_parallel(double a, double b, int nsteps) {
     double t = cpuSecond();
-    double res = integrate_omp(func, a, b, nsteps); // parallel function
+    double res = integrate_omp(func, a, b, nsteps);
     t = cpuSecond() - t;
 
-    printf("Result: %.12f // Error: %.12f\n", res, fabs(res - sqrt(PI)));
-    return t * 1000; // return value in ms
+    printf("\nResult: %.12f // Error: %.12f\n", res, fabs(res - sqrt(PI)));
+    return t * 1000; // возвращаем значение в мс
 }
 
 
@@ -79,8 +81,8 @@ double run_parallel(double a, double b, int nsteps) {
 int main() {
     int threads[] = { 1, 2, 4, 7, 8, 16, 20, 40 };
 
-    // run everything explicitly serial - this is not a mistake
-    printf("\n=== SERIAL ===\n");
+    // намеренно всё запускаем последовательно - это не ошибка!
+    printf("\n=== SERIAL ===");
     double serial_results[2];
     serial_results[0] = run_serial(-4.0, 4.0, 40000000);
     printf("40M elapsed time: %.6f ms\n", serial_results[0]);

@@ -3,9 +3,9 @@
 #include <time.h>
 #include <omp.h>
 
-//#define MATRIX_COLS 40000 // 20000 or 40000
+//#define MATRIX_COLS 40000 // 20000 или 40000
 //#define MATRIX_ROWS MATRIX_COLS
-//#define MAX_THREADS 40 // 1,2,4,7,8,16,20,40
+//#define MAX_THREADS 40 // 1, 2, 4, 7, 8, 16, 20, 40
 
 double cpuSecond() {
     struct timespec ts;
@@ -34,6 +34,9 @@ void matrix_vector_product_omp(double *a, double *b, double *c, int cols, int ro
         int lb = threadid * items_per_thread;
         int ub = (threadid == nthreads - 1) ? (cols - 1) : (lb + items_per_thread - 1);
 
+        // параллельно-вычисляемый цикл FOR,
+        // каждый поток вычисляет только 1/n-тую
+        // часть всех значений (от lb до ub)
         for (int i = lb; i <= ub; i++) {
             c[i] = 0.0; // Store – запись в память
             for (int j = 0; j < rows; j++) {
@@ -62,13 +65,13 @@ double run_serial(int cols, int rows) {
     }
 
     double t = cpuSecond();
-    matrix_vector_product(a, b, c, cols, rows); // serial function
+    matrix_vector_product(a, b, c, cols, rows);
     t = cpuSecond() - t;
 
     free(a);
     free(b);
     free(c);
-    return t * 1000; // return value in ms
+    return t * 1000; // возвращаем значение в мс
 }
 
 double run_parallel(int cols, int rows) {
@@ -85,7 +88,9 @@ double run_parallel(int cols, int rows) {
         int lb = threadid * items_per_thread;
         int ub = (threadid == nthreads - 1) ? (cols - 1) : (lb + items_per_thread - 1);
 
-        // parallel calculations FOR cycle
+        // параллельно-вычисляемый цикл FOR,
+        // каждый поток вычисляет только 1/n-тую
+        // часть всех значений (от lb до ub)
         for (int i = lb; i <= ub; i++) {
             for (int j = 0; j < rows; j++) {
                 a[i * rows + j] = i + j;
@@ -98,13 +103,13 @@ double run_parallel(int cols, int rows) {
     }
 
     double t = cpuSecond();
-    matrix_vector_product_omp(a, b, c, cols, rows); // parallel function
+    matrix_vector_product_omp(a, b, c, cols, rows);
     t = cpuSecond() - t;
 
     free(a);
     free(b);
     free(c);
-    return t * 1000; // return value in ms
+    return t * 1000; // возвращаем значение в мс
 }
 
 
@@ -112,7 +117,7 @@ double run_parallel(int cols, int rows) {
 int main() {
     int threads[] = { 1, 2, 4, 7, 8, 16, 20, 40 };
 
-    // run everything explicitly serial - this is not a mistake
+    // намеренно всё запускаем последовательно - это не ошибка!
     printf("\n=== SERIAL ===\n");
     double serial_results[2];
     serial_results[0] = run_serial(20000, 20000);
