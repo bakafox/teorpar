@@ -66,8 +66,6 @@ double run_serial(int cols, int rows) {
     return t * 1000; // возвращаем значение в мс
 }
 
-
-
 double run_parallel_var1(int cols, int rows) {
     // для каждого распараллеливаемого цикла создается
     // отдельная параллельная секция #pragma omp parallel for
@@ -84,7 +82,9 @@ double run_parallel_var1(int cols, int rows) {
 
         #pragma omp parallel
         {
-            #pragma omp for schedule(static)
+            #pragma omp for schedule(static) // методом научного тыка установлено,
+                                             // что лучше всего для операций
+                                             // подходит режим распред-я "static".
             for (int i = 0; i < cols; i++) {
                 prod[i] = 0.0;
 
@@ -155,7 +155,6 @@ double run_parallel_var2(int cols, int rows) {
             #pragma omp atomic // предотвращаем одновременные обращения потоков
             delta += localdelta;
 
-            #pragma omp barrier // завтавляем все потоки ждать заершения итерации здесь
         }
         delete[] prod;
     }
@@ -170,7 +169,7 @@ double run_parallel_var2(int cols, int rows) {
 
 int main() {
     int threads[] = { 1, 2, 4, 7, 8, 16, 20, 40, 60, 80 };
-    int SIZE = 15000;
+    int SIZE = 15000; // ~50 секунд на 1 ядре
 
     // намеренно всё запускаем последовательно - это не ошибка!
     printf("\n=== SERIAL ===\n");
