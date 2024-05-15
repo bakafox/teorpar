@@ -1,0 +1,54 @@
+
+=== SERIAL ===
+20K elapsed time: 3056.708097 ms
+40K elapsed time: 6498.862267 ms
+
+=== PARALLEL ===
+Number of threads: 1
+20K elapsed time: 2071.938992 ms
+20K accelerarion ratio: 1.475289
+40K elapsed time: 13552.018881 ms
+40K accelerarion ratio: 0.479549
+------
+Number of threads: 2
+20K elapsed time: 974.992514 ms
+20K accelerarion ratio: 3.135109
+40K elapsed time: 5100.723743 ms
+40K accelerarion ratio: 1.274106
+------
+Number of threads: 4
+20K elapsed time: 463.284254 ms
+20K accelerarion ratio: 6.597911
+40K elapsed time: 2176.019907 ms
+40K accelerarion ratio: 2.986582
+------
+Number of threads: 7
+20K elapsed time: 286.778927 ms
+20K accelerarion ratio: 10.658761
+40K elapsed time: 1302.062511 ms
+40K accelerarion ratio: 4.991206
+------
+Number of threads: 8
+20K elapsed time: 260.262489 ms
+20K accelerarion ratio: 11.744712
+40K elapsed time: 1030.268669 ms
+40K accelerarion ratio: 6.307930
+------
+Number of threads: 16
+20K elapsed time: 182.486534 ms
+20K accelerarion ratio: 16.750321
+40K elapsed time: 843.006134 ms
+40K accelerarion ratio: 7.709152
+------
+Number of threads: 20
+20K elapsed time: 180.328369 ms
+20K accelerarion ratio: 16.950789
+40K elapsed time: 583.263159 ms
+40K accelerarion ratio: 11.142247
+------
+Number of threads: 40
+20K elapsed time: 139.559031 ms
+20K accelerarion ratio: 21.902618
+40K elapsed time: 439.981699 ms
+40K accelerarion ratio: 14.770756
+------

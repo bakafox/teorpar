@@ -3,8 +3,8 @@
 #include <time.h>
 #include <omp.h>
 
-#define THAU 1.e-4
-#define EPSILON 1.e-7
+#define THAU 0.01
+#define EPSILON 1.e-5
 
 using namespace std;
 
@@ -16,13 +16,24 @@ double cpuSecond() {
 
 
 
-void prepare_values(double *a, double *b, double *x, int cols, int rows) {
+void prepare_values(double *a, double *b, double *c, int cols, int rows) {
+    // теоретически, можно дополнительно ускорить параллельные
+    // версии программ, если внести эту функцию в код и распараллелить
     for (int i = 0; i < cols; i++) {
         for (int j = 0; j < rows; j++) {
             a[i * rows + j] = (i == j) ? 2.0 : 1.0;
         }
         b[i] = cols + 1;
-        x[i] = 0.0;
+    }
+}
+
+void iterate(double *a, double *b, double *c, int cols, int rows) {
+    for (int i = 0; i < cols; i++) {
+        c[i] = 0.0;
+
+        for (int j = 0; j < rows; j++) {
+            c[i] += a[i * rows + j] * b[j];
+        }
     }
 }
 
@@ -31,38 +42,28 @@ void prepare_values(double *a, double *b, double *x, int cols, int rows) {
 double run_serial(int cols, int rows) {
     double *a = new double[cols * rows];
     double *b = new double[cols];
-    double *x = new double[cols];
-    prepare_values(a, b, x, cols, rows);
+    double *c = new double[cols];
+    prepare_values(a, b, c, cols, rows);
 
     double t = cpuSecond();
 
-    double delta = 10.0 * EPSILON;
-    while (delta > EPSILON) {
-        double *prod = new double[cols];
-
-        for (int i = 0; i < cols; i++) {
-            prod[i] = 0.0;
-
-            for (int j = 0; j < rows; j++) {
-                prod[i] += a[i * rows + j] * x[j];
-            }
-        }
-
+    double delta;
+    do {
+        double *temp = new double[cols];
+        iterate(a, b, temp, cols, rows);
         delta = 0.0;
         for (int i = 0; i < cols; i++) {
-            double diff = fabs(prod[i] - b[i]) / fabs(b[i]);
-            delta += diff;
-            x[i] = x[i] - THAU * (prod[i] - b[i]);
+            delta += fabs(temp[i] - b[i]);
+            b[i] = temp[i];
         }
-
-        delete[] prod;
-    }
+        delete[] temp;
+    } while (delta > EPSILON);
 
     t = cpuSecond() - t;
 
     delete[] a;
     delete[] b;
-    delete[] x;
+    delete[] c;
     return t * 1000; // возвращаем значение в мс
 }
 
@@ -71,45 +72,45 @@ double run_parallel_var1(int cols, int rows) {
     // отдельная параллельная секция #pragma omp parallel for
     double *a = new double[cols * rows];
     double *b = new double[cols];
-    double *x = new double[cols];
-    prepare_values(a, b, x, cols, rows);
+    double *c = new double[cols];
+    prepare_values(a, b, c, cols, rows);
 
     double t = cpuSecond();
 
-    double delta = 10.0 * EPSILON;
-    while (delta > EPSILON) {
-        double *prod = new double[cols];
+    double delta = 0.0;
+    do
+    {
+        double *temp = new double[cols];
+        #pragma omp parallel
+        {
+            for (int i = 0; i < cols; i++) {
+                temp[i] = 0.0;
 
-        delta = 0.0;
-        #pragma omp parallel for schedule(static) // методом научного тыка установлено,
-                                                  // что лучше всего для операций
-                                                  // подходит режим распред-я "static".
-        for (int i = 0; i < cols; i++) {
-            prod[i] = 0.0;
-
-            for (int j = 0; j < rows; j++) {
-                prod[i] += a[i * rows + j] * x[j];
+                for (int j = 0; j < rows; j++) {
+                    temp[i] += a[i * rows + j] * b[j];
+                }
             }
         }
 
-        #pragma omp parallel for schedule(static) reduction(+:delta) // вместо atmoic-ов
-        //double localdelta = 0.0;
-        for (int i = 0; i < cols; i++) {
-            double diff = fabs(prod[i] - b[i]) / fabs(b[i]);
-            delta += diff; //localdelta += diff;
-            x[i] = x[i] - THAU * (prod[i] - b[i]);
+        #pragma omp parallel
+        {
+            double localdelta = 0.0;
+            for (int i = 0; i < cols; i++)
+            {
+                localdelta += fabs(temp[i] - b[i]);
+                b[i] = temp[i];
+            }
+            #pragma omp atomic // предотвращаем одновременные обращения потоков
+                delta += localdelta;
         }
-        //#pragma omp atomic
-        //delta += localdelta;
-
-        delete[] prod;
-    }
+        delete[] temp;
+    } while (delta > EPSILON);
 
     t = cpuSecond() - t;
 
     delete[] a;
     delete[] b;
-    delete[] x;
+    delete[] c;
     return t * 1000; // возвращаем значение в мс
 }
 
@@ -118,58 +119,51 @@ double run_parallel_var2(int cols, int rows) {
     // parallel, охватывающая весь итерационный алгоритм.
     double *a = new double[cols * rows];
     double *b = new double[cols];
-    double *x = new double[cols];
-    prepare_values(a, b, x, cols, rows);
+    double *c = new double[cols];
+    prepare_values(a, b, c, cols, rows);
 
     double t = cpuSecond();
-    double delta = 10.0 * EPSILON;
 
-    #pragma omp parallel
-    {
-        double *prod = new double[cols];
-        
-        while (delta > EPSILON) {
+    double delta = 0.0;
+    do {
+        #pragma omp parallel
+        {
+            double *temp = new double[cols];
+            double localdelta = 0.0;
 
-            delta = 0.0;
-            #pragma omp for schedule(static)
             for (int i = 0; i < cols; i++) {
-                prod[i] = 0.0;
+                temp[i] = 0.0;
 
                 for (int j = 0; j < rows; j++) {
-                    prod[i] += a[i * rows + j] * x[j];
+                    temp[i] += a[i * rows + j] * b[j];
                 }
             }
 
-            #pragma omp for schedule(static) reduction(+:delta) // вместо atmoic-ов
-            //double localdelta = 0.0;
             for (int i = 0; i < cols; i++) {
-                double diff = fabs(prod[i] - b[i]) / fabs(b[i]);
-                delta += diff; //localdelta += diff;
-                x[i] = x[i] - THAU * (prod[i] - b[i]);
+                delta += fabs(temp[i] - b[i]);
+                b[i] = temp[i];
             }
-            //#pragma omp atomic
-            //delta += localdelta;
+            
+            #pragma omp atomic // предотвращаем одновременные обращения потоков
+                delta += localdelta;
+            delete[] temp;
         }
-
-        delete[] prod;
-    }
+    } while (delta > EPSILON);
 
     t = cpuSecond() - t;
 
     delete[] a;
     delete[] b;
-    delete[] x;
+    delete[] c;
     return t * 1000; // возвращаем значение в мс
 }
 
-
-
 int main() {
     int threads[] = { 1, 2, 4, 7, 8, 16, 20, 40, 60, 80 };
-    int SIZE = 14400; // ~30 секунд в последовательном режиме
+    int SIZE = 5000;
 
     // намеренно всё запускаем последовательно - это не ошибка!
-    printf("\n=== SERIAL ===");
+    printf("\n=== SERIAL ===\n");
     double serial_results;
     serial_results = run_serial(SIZE, SIZE);
     printf("\nElapsed time: %.6f ms\n", serial_results);
@@ -190,10 +184,10 @@ int main() {
         printf("Var2 accelerarion ratio: %.6f\n", serial_results / parallel_var2_results);
 
         if (parallel_var1_results > parallel_var2_results) {
-            printf("\nVar2 is faster on %.6f ms\n", parallel_var1_results - parallel_var2_results);
+            printf("\nVar1 is faster on %.6f ms\n", parallel_var1_results - parallel_var2_results);
         }
         else {
-            printf("\nVar1 is faster on %.6f ms\n", parallel_var2_results - parallel_var1_results);
+            printf("\nVar2 is faster on %.6f ms\n", parallel_var2_results - parallel_var1_results);
         }
         printf("------\n");
     }
