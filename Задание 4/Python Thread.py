@@ -29,7 +29,7 @@ class SensorCam(Sensor):
     def __init__(self, cam_name, cam_res):
         self._name = cam_name
         self._width = int(cam_res.split('x')[0])
-        self._height = int(cam_res.split('x')[0])
+        self._height = int(cam_res.split('x')[1])
 
         self._VC = cv2.VideoCapture(self._name)
         if not self._VC.isOpened():
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     # Парсим и инициализируем аргументы
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='/dev/vidsdsdeo0')
+    parser.add_argument('--name', type=str, default='/dev/video0')
     parser.add_argument('--res', type=str, default='640x480')
     parser.add_argument('--freq', type=int, default=30)
     args = parser.parse_args()
