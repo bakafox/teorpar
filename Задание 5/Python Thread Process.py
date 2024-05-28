@@ -9,6 +9,7 @@ from ultralytics import YOLO
 
 
 def process_frame(model, frame):
+    #model.to('cpu')
     result = model(frame)
     return result[0].plot()
 
@@ -40,8 +41,7 @@ def process_video(input_path, output_path, max_threads):
 
     print(f'Thread count: {max_threads}')
 
-    # Создаём и запускаем max_threads потоков
-    # с общими очередями "на вход" и "на выход":
+    # Создаём и запускаем max_threads потоков с общими очередями
     frame_queue = queue.Queue()
     result_queue = queue.Queue()
     threads = []
@@ -83,7 +83,7 @@ def process_video(input_path, output_path, max_threads):
         VW.write(results[idx])
     VW.release()
 
-    print(f'Finished processing at {time.time() - timestamp} seconds')
+    print(f'Finished processing at {time.time() - timestamp} seconds.')
 
 
 if __name__ == '__main__':
@@ -95,6 +95,6 @@ if __name__ == '__main__':
 
     input_path = args.input
     output_path = args.output
-    max_threads = 1 if (args.use_mt == 0) else 20 # Больше 16-20 лучше не ставить
+    max_threads = 1 if (args.use_mt == 0) else 20 # 16-20 оптимально
 
     process_video(input_path, output_path, max_threads)
