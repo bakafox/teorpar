@@ -1,0 +1,18 @@
+1. Установить pgcpp:
+
+https://forums.developer.nvidia.com/t/install-pgi-for-ubuntu/215159
+
+2. Добавить вот это в .bashrc:
+
+NVARCH=Linux_x86_64; export NVARCH
+NVCOMPILERS=/opt/nvidia/hpc_sdk; export NVCOMPILERS
+MANPATH=$MANPATH:$NVCOMPILERS/$NVARCH/24.5/compilers/man; export MANPATH
+PATH=$NVCOMPILERS/$NVARCH/24.5/compilers/bin:$PATH; export PATH
+
+2. Установить Boost:
+
+sudo apt install build-essential libboost-all-dev cmake git -y
+
+3. Установить NSight Systems:
+
+https://developer.nvidia.com/nsight-systems/get-started

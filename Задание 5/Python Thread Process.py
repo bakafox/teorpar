@@ -6,17 +6,14 @@ import argparse
 import threading
 import queue
 from ultralytics import YOLO
+import torch
 
 
 def process_frame(model, frame):
-    #model.to('cpu')
     result = model(frame)
     return result[0].plot()
 
-def worker(frame_queue, result_queue):
-    #model = YOLO('yolov8n-pose')
-    model = YOLO('yolov8s-pose')
-
+def worker(model, frame_queue, result_queue):
     while True:
         data = frame_queue.get()
 
@@ -30,8 +27,6 @@ def worker(frame_queue, result_queue):
 
 
 def process_video(input_path, output_path, max_threads):
-    timestamp = time.time()
-
     VC = cv2.VideoCapture(input_path)
     frame_width = int(VC.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(VC.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -39,17 +34,24 @@ def process_video(input_path, output_path, max_threads):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     VW = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 
-    print(f'Thread count: {max_threads}')
-
     # Создаём и запускаем max_threads потоков с общими очередями
+    print(f'Thread count: {max_threads}')
     frame_queue = queue.Queue()
     result_queue = queue.Queue()
     threads = []
 
     for i in range(max_threads):
-        thread = threading.Thread(target=worker, args=(frame_queue, result_queue))
+        # Для каждого потока инициализируем свою локальную модель. См.:
+        # https://docs.ultralytics.com/guides/yolo-thread-safe-inference/#thread-safe-example
+        #model = YOLO('yolov8n-pose')
+        model = YOLO('yolov8s-pose')
+        model.to(torch.device('cuda'))
+
+        thread = threading.Thread(target=worker, args=(model, frame_queue, result_queue))
         thread.start()
         threads.append(thread)
+
+    timestamp = time.time()
 
     # Потоки запущены, кидаем в очередь все кадры оргинального видео
     frame_cnt = 0
@@ -95,6 +97,6 @@ if __name__ == '__main__':
 
     input_path = args.input
     output_path = args.output
-    max_threads = 1 if (args.use_mt == 0) else 20 # 16-20 оптимально
+    max_threads = 1 if (args.use_mt == 0) else 4 # Лучшее значение по методу научного тыка
 
     process_video(input_path, output_path, max_threads)

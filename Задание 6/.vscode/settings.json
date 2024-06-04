@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "iostream": "cpp",
+        "new": "cpp",
+        "atomic": "cpp",
+        "limits": "cpp"
+    }
+}

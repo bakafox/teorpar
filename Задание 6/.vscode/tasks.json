@@ -1,0 +1,95 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "CPU_HOST BUILD FOR VSCODE",
+            //"command": "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/compilers/bin/pgc++",
+            "command": "pgc++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "-fopenmp",
+                "-acc",
+                "-acc=host",
+                "-Minfo=all",
+                "-lboost_program_options"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "CPU_HOST BUILD FOR VSCODE"
+        },
+
+        {
+            "type": "cppbuild",
+            "label": "CPU_MULTICORE BUILD FOR VSCODE",
+            //"command": "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/compilers/bin/pgc++",
+            "command": "pgc++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "-fopenmp",
+                "-acc",
+                "-acc=multicore",
+                "-Minfo=all",
+                "-lboost_program_options"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "CPU_MULTICORE BUILD FOR VSCODE"
+        },
+
+        {
+            "type": "cppbuild",
+            "label": "GPU BUILD FOR VSCODE",
+            //"command": "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/compilers/bin/pgc++",
+            "command": "pgc++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "-fopenmp",
+                "-acc",
+                "-acc=gpu",
+                "-Minfo=all",
+                "-lboost_program_options",
+                "-I/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/cuda/12.4/include"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "GPU BUILD FOR VSCODE"
+        }
+    ],
+    "version": "2.0.0"
+}
